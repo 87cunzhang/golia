@@ -1,10 +1,10 @@
 package golib
 func Sing() string{
-	return "sing!"
+	return "sing!!"
 }
 func Dance() string{
-	return "dance!"
+	return "dance!!"
 }
 func Eat() string{
-	return "eat!"
+	return "eat!!"
 }
