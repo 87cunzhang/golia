@@ -5,3 +5,6 @@ func Sing() string{
 func Dance() string{
 	return "dance!"
 }
+func Eat() string{
+	return "eat!"
+}
