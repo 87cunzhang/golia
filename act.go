@@ -3,5 +3,5 @@ package golib
 import "fmt"
 
 func Watch() {
-	fmt.Println("watch!")
+	fmt.Println("watch!!")
 }
