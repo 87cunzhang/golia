@@ -1,4 +1,4 @@
-package miniAppService
+package golib
 
 import (
 	"errors"
@@ -70,16 +70,16 @@ func MiniappUpdateAll(jsonMsg []byte) error {
 		return nil
 	}
 	//生成一条小程序更新记录
-	r := new(miniAppModel.MiniTmplHistory)
+	r := new(MiniTmplHistory)
 	//老版本号
-	r.OldVersion = miniAppModel.GetLastHistoryRecord()
+	r.OldVersion = GetLastHistoryRecord()
 	//模板类型:1=商家端应用(移动) 2=商家端应用(PC)
 	r.TmplType = 1
 	r.TmplId = tmplId
 	//模板ID
 	r.NewVersion = newVersion
 	//生成一条更新记录
-	historyId := miniAppModel.AddMiniTmplHistory(r)
+	historyId := AddMiniTmplHistory(r)
 
 	var offset, pageSize, pageNum int64
 	pageSize = 20
@@ -89,10 +89,10 @@ func MiniappUpdateAll(jsonMsg []byte) error {
 	for {
 		offset = (pageNum - 1) * pageSize
 		//店铺列表
-		shopList := miniAppModel.GetUpdateShops(offset, pageSize, tmplId)
+		shopList := GetUpdateShops(offset, pageSize, tmplId)
 		if len(shopList) == 0 {
 			//将状态更新为已全部更新完成
-			err := miniAppModel.UpdateMiniTmplHistoryStatus(historyId)
+			err := UpdateMiniTmplHistoryStatus(historyId)
 			if err != nil {
 				LogErr("状态更新失败", errors.New("historyId:"+strconv.FormatInt(historyId, 10)+", 状态更新失败"))
 			}
@@ -150,25 +150,25 @@ func onlineApp(shopId string, accessToken string, clients string, appId string, 
 
 //小程序更新成功
 func updateAppSuccess(shopId string, status string, appVersion string, templateVersion string, apiResponse string, historyId string, TmplId string) error {
-	err := miniAppModel.UpdateAppSuccess(shopId, status, appVersion, templateVersion, apiResponse, historyId, TmplId)
+	err := UpdateAppSuccess(shopId, status, appVersion, templateVersion, apiResponse, historyId, TmplId)
 	return err
 }
 
 //小程序更新失败
 func updateAppFail(shopId string, status string, subCode string, templateVersion string, apiResponse string, historyId string, TmplId string) error {
-	err := miniAppModel.UpdateAppFail(shopId, status, subCode, templateVersion, apiResponse, historyId, TmplId)
+	err := UpdateAppFail(shopId, status, subCode, templateVersion, apiResponse, historyId, TmplId)
 	return err
 }
 
 //小程序上线成功
 func onlineAppSuccess(shopId string, status string, appVersion string, apiResponse string, preViewUrl string, historyId string, TmplId string) error {
-	err := miniAppModel.OnlineAppSuccess(shopId, status, appVersion, apiResponse, preViewUrl, historyId, TmplId)
+	err := OnlineAppSuccess(shopId, status, appVersion, apiResponse, preViewUrl, historyId, TmplId)
 	return err
 }
 
 //小程序上线失败
 func onlineAppFail(shopId string, status string, subCode string, apiResponse string, historyId string, TmplId string) error {
-	err := miniAppModel.OnlineAppFail(shopId, status, subCode, apiResponse, historyId, TmplId)
+	err := OnlineAppFail(shopId, status, subCode, apiResponse, historyId, TmplId)
 	return err
 }
 

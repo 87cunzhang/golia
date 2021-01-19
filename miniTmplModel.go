@@ -1,4 +1,4 @@
-package miniAppModel
+package golib
 
 import (
 	"strconv"
