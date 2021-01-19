@@ -13,7 +13,9 @@ import (
 	"zkds/src/redis"
 	"zkds/src/taobaoService"
 )
-
+func MiniappTest(){
+	fmt.Println("hello world")
+}
 //更新单个店铺小程序
 func MiniappUpdateOnline(jsonMsg []byte) error {
 	shopId, _ := jsonparser.GetString(jsonMsg, "shop_id")
