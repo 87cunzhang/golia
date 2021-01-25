@@ -3,19 +3,13 @@ package golib
 import (
 	"errors"
 	"fmt"
+	"github.com/87cunzhang/utils"
 	"github.com/buger/jsonparser"
 	"github.com/streadway/amqp"
-	"io/ioutil"
 	"log"
 	"strconv"
-	"time"
-	"zkds/src/confParser"
-	"zkds/src/redis"
-	"zkds/src/taobaoService"
 )
-func MiniappTest(){
-	fmt.Println("hello world")
-}
+
 //更新单个店铺小程序
 func MiniappUpdateOnline(jsonMsg []byte) error {
 	shopId, _ := jsonparser.GetString(jsonMsg, "shop_id")
@@ -24,13 +18,13 @@ func MiniappUpdateOnline(jsonMsg []byte) error {
 	historyId, _ := jsonparser.GetString(jsonMsg, "history_id")
 	tmplId, _ := jsonparser.GetString(jsonMsg, "tmpl_id")
 	if len(tmplId) != 16 {
-		LogErr("tmplId invalid", errors.New("tmplId 参数错误"))
+		utils.LogErr("tmplId invalid", errors.New("tmplId 参数错误"))
 		return nil
 	}
 	accessToken := GetSessionByShopId(shopId)
 	clients := "taobao,tmall"
 	extJson := "{\"ext\":{\"shopId\":" + shopId + ",\"Version\":\"" + newVersion + "\"},\"extEnable\":true}"
-	updateResponse := taobaoService.MiniappTemplateUpdateapp(accessToken, clients, appId, extJson, tmplId, newVersion)
+	updateResponse := MiniappTemplateUpdateapp(accessToken, clients, appId, extJson, tmplId, newVersion)
 	updateData, _, _, _ := jsonparser.Get([]byte(updateResponse), "miniapp_template_updateapp_response")
 
 	if len(updateData) > 0 {
@@ -68,7 +62,7 @@ func MiniappUpdateAll(jsonMsg []byte) error {
 	newVersion, _ := jsonparser.GetString(jsonMsg, "new_version")
 	tmplId, _ := jsonparser.GetString(jsonMsg, "tmpl_id")
 	if len(tmplId) != 16 {
-		LogErr("tmplId invalid", errors.New("tmplId 参数错误"))
+		utils.LogErr("tmplId invalid", errors.New("tmplId 参数错误"))
 		return nil
 	}
 	//生成一条小程序更新记录
@@ -96,7 +90,7 @@ func MiniappUpdateAll(jsonMsg []byte) error {
 			//将状态更新为已全部更新完成
 			err := UpdateMiniTmplHistoryStatus(historyId)
 			if err != nil {
-				LogErr("状态更新失败", errors.New("historyId:"+strconv.FormatInt(historyId, 10)+", 状态更新失败"))
+				utils.LogErr("状态更新失败", errors.New("historyId:"+strconv.FormatInt(historyId, 10)+", 状态更新失败"))
 			}
 			//退出循环
 			break
@@ -105,16 +99,16 @@ func MiniappUpdateAll(jsonMsg []byte) error {
 		//发送消息到更新单个店铺小程序的队列
 		for _, v := range shopList {
 			body := "{\"data\":{\"shop_id\":\"" + strconv.FormatInt(v.ShopId, 10) + "\",\"app_id\":\"" + v.AppId + "\",\"new_version\":\"" + newVersion + "\",\"tmpl_id\":\"" + tmplId + "\",\"history_id\":\"" + strconv.FormatInt(historyId, 10) + "\"},\"type\":\"miniapp_update_online\"}"
-			conf := confParser.DefaultConf()
-			exchangeName := conf.DefaultString("AMQP::miniAppExchangeName", "")
-			QueueBindKey := conf.DefaultString("AMQP::miniAppQueueBindKey", "")
-			if len(exchangeName) == 0 || len(QueueBindKey) == 0 {
-				LogErr("config.json miss miniAppExchangeName and miniAppQueueBindKey", errors.New("未配置实例化队列"))
+			conf := DefaultConf()
+			miniAppExchangeName := conf.DefaultString("AMQP::miniAppExchangeName", "")
+			miniAppQueueBindKey := conf.DefaultString("AMQP::miniAppQueueBindKey", "")
+			if len(miniAppExchangeName) == 0 || len(miniAppQueueBindKey) == 0 {
+				utils.LogErr("miniAppExchangeName and miniAppQueueBindKey not init", errors.New("未配置实例化队列"))
 				return nil
 			}
-			err := publish(exchangeName, QueueBindKey, body, true)
+			err := publish(miniAppExchangeName, miniAppQueueBindKey, body, true)
 			if err != nil {
-				LogErr("消息发送失败", err)
+				utils.LogErr("消息发送失败", err)
 			}
 		}
 
@@ -127,7 +121,7 @@ func MiniappUpdateAll(jsonMsg []byte) error {
 //更新小程序
 func onlineApp(shopId string, accessToken string, clients string, appId string, appVersion string, TmplId string, newVersion string, historyId string) error {
 	//上线小程序
-	onlineResponse := taobaoService.MiniappTemplateOnlineapp(accessToken, clients, appId, appVersion, TmplId, newVersion)
+	onlineResponse := MiniappTemplateOnlineapp(accessToken, clients, appId, appVersion, TmplId, newVersion)
 	onlineData, _, _, _ := jsonparser.Get([]byte(onlineResponse), "miniapp_template_onlineapp_response")
 
 	if len(onlineData) > 0 {
@@ -174,19 +168,9 @@ func onlineAppFail(shopId string, status string, subCode string, apiResponse str
 	return err
 }
 
-//记录日志
-func LogErr(content string, err error) {
-	logPath := confParser.DefaultConf().String("errLogPath")
-	logData := fmt.Sprintf("%s err: %s, content: %s\n", time.Now().Format("2006-01-02 15:04:05"), err.Error(), content)
-	fileName := logPath + "_" + time.Now().Format("2006-01-02")
-	if err := ioutil.WriteFile(fileName, []byte(logData), 0644); err != nil {
-		log.Println("write file err:", err)
-	}
-}
-
 //发布消息
 func publish(exchange, routingKey, body string, reliable bool) error {
-	conf := confParser.DefaultConf()
+	conf := DefaultConf()
 	user := conf.DefaultString("AMQP::user", "guest")
 	pwd := conf.DefaultString("AMQP::password", "guest")
 	addr := conf.DefaultString("AMQP::addr", "localhost")
@@ -194,7 +178,7 @@ func publish(exchange, routingKey, body string, reliable bool) error {
 	amqpURI := "amqp://" + user + ":" + pwd + "@" + addr + ":" + strconv.Itoa(port) + "/"
 	connection, err := amqp.Dial(amqpURI)
 	if err != nil {
-		LogErr("rabbitMq 连接失败", err)
+		utils.LogErr("rabbitMq 连接失败", err)
 		return fmt.Errorf("Dial: %s", err)
 	}
 	defer connection.Close()
@@ -245,25 +229,12 @@ func confirmOne(confirms <-chan amqp.Confirmation) {
 
 //获取店铺access_token
 func GetSessionByShopId(shopId string) string {
-	shopInfo := getShopInfo(shopId)
-	if len(shopInfo) == 0 {
-		LogErr("shopId:"+shopId+", shopInfo empty", errors.New("shopId:"+shopId+", shopInfo empty"))
-		return ""
-	}
-
-	session := shopInfo["access_token"]
+	session := GetAccessTokenByShopId(shopId)
 
 	if session == "" {
-		LogErr("shopId:"+shopId+", session empty", errors.New("shopId:"+shopId+", session empty"))
+		utils.LogErr("shopId:"+shopId+", session empty", errors.New("shopId:"+shopId+", session empty"))
 		return ""
 	}
 
 	return session
-}
-
-//获取店铺信息
-func getShopInfo(shopId string) map[string]string {
-	cacheKey := redis.GetShopInfoCacheKey(shopId)
-	val, _ := redis.RedisDB.HGetAll(cacheKey).Result()
-	return val
 }

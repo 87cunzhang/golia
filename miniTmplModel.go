@@ -3,7 +3,6 @@ package golib
 import (
 	"strconv"
 	"time"
-	"zkds/src/model"
 )
 
 type MiniTmpl struct {
@@ -22,25 +21,25 @@ func GetTmplTableName(TmplId string) string {
 
 //更新成功
 func UpdateAppSuccess(shopId string, status string, appVersion string, templateVersion string, apiResponse string, historyId string, TmplId string) error {
-	_, err := model.DB("member").Table(GetTmplTableName(TmplId)).SQL("update " + GetTmplTableName(TmplId) + " set `status` = '" + status + "',`template_version` = '" + templateVersion + "',`app_version` = '" + appVersion + "',`sub_code` = 'success',`api_response` = '" + apiResponse + "',`history_id` = '" + historyId + "',`update_time` = " + strconv.Itoa(int(time.Now().Unix())) + " where shop_id = '" + shopId + "'").Execute()
+	_, err := DB("member").Table(GetTmplTableName(TmplId)).SQL("update " + GetTmplTableName(TmplId) + " set `status` = '" + status + "',`template_version` = '" + templateVersion + "',`app_version` = '" + appVersion + "',`sub_code` = 'success',`api_response` = '" + apiResponse + "',`history_id` = '" + historyId + "',`update_time` = " + strconv.Itoa(int(time.Now().Unix())) + " where shop_id = '" + shopId + "'").Execute()
 	return err
 }
 
 //更新失败
 func UpdateAppFail(shopId string, status string, subCode string, templateVersion string, apiResponse string, historyId string, TmplId string) error {
-	_, err := model.DB("member").Table(GetTmplTableName(TmplId)).SQL("update " + GetTmplTableName(TmplId) + " set `status` = '" + status + "',`template_version` = '" + templateVersion + "',`sub_code` = '" + subCode + "',`api_response` = '" + apiResponse + "',`history_id` = '" + historyId + "',`update_time` = " + strconv.Itoa(int(time.Now().Unix())) + " where shop_id = '" + shopId + "'").Execute()
+	_, err := DB("member").Table(GetTmplTableName(TmplId)).SQL("update " + GetTmplTableName(TmplId) + " set `status` = '" + status + "',`template_version` = '" + templateVersion + "',`sub_code` = '" + subCode + "',`api_response` = '" + apiResponse + "',`history_id` = '" + historyId + "',`update_time` = " + strconv.Itoa(int(time.Now().Unix())) + " where shop_id = '" + shopId + "'").Execute()
 	return err
 }
 
 //上线成功
 func OnlineAppSuccess(shopId string, status string, appVersion string, apiResponse string, PreviewUrl string, historyId string, TmplId string) error {
-	_, err := model.DB("member").Table(GetTmplTableName(TmplId)).SQL("update " + GetTmplTableName(TmplId) + " set `status` = '" + status + "',`pre_view_url` = '" + PreviewUrl + "',`app_version` = '" + appVersion + "',`sub_code` = 'success',`api_response` = '" + apiResponse + "',`history_id` = '" + historyId + "',`update_time` = " + strconv.Itoa(int(time.Now().Unix())) + " where shop_id = '" + shopId + "'").Execute()
+	_, err := DB("member").Table(GetTmplTableName(TmplId)).SQL("update " + GetTmplTableName(TmplId) + " set `status` = '" + status + "',`pre_view_url` = '" + PreviewUrl + "',`app_version` = '" + appVersion + "',`sub_code` = 'success',`api_response` = '" + apiResponse + "',`history_id` = '" + historyId + "',`update_time` = " + strconv.Itoa(int(time.Now().Unix())) + " where shop_id = '" + shopId + "'").Execute()
 	return err
 }
 
 //上线失败
 func OnlineAppFail(shopId string, status string, subCode string, apiResponse string, historyId string, TmplId string) error {
-	_, err := model.DB("member").Table(GetTmplTableName(TmplId)).SQL("update " + GetTmplTableName(TmplId) + " set `status` = '" + status + "',`sub_code` = '" + subCode + "',`api_response` = '" + apiResponse + "',`history_id` = '" + historyId + "',`update_time` = " + strconv.Itoa(int(time.Now().Unix())) + " where shop_id = '" + shopId + "'").Execute()
+	_, err := DB("member").Table(GetTmplTableName(TmplId)).SQL("update " + GetTmplTableName(TmplId) + " set `status` = '" + status + "',`sub_code` = '" + subCode + "',`api_response` = '" + apiResponse + "',`history_id` = '" + historyId + "',`update_time` = " + strconv.Itoa(int(time.Now().Unix())) + " where shop_id = '" + shopId + "'").Execute()
 	return err
 }
 
@@ -50,6 +49,6 @@ func GetUpdateShops(offset int64, pageSize int64, TmplId string) []MiniTmpl {
 	offsetString := strconv.FormatInt(offset, 10)
 	pageSizeString := strconv.FormatInt(pageSize, 10)
 	currTimeStampString := strconv.FormatInt(time.Now().Unix(), 10)
-	model.DB("member").Table(GetTmplTableName(TmplId)).Join("INNER", "txzj_shop", GetTmplTableName(TmplId)+".shop_id = txzj_shop.shop_id and txzj_shop.deadline > "+currTimeStampString+" limit "+offsetString+","+pageSizeString).Find(&miniTmplColumns)
+	DB("member").Table(GetTmplTableName(TmplId)).Join("INNER", "txzj_shop", GetTmplTableName(TmplId)+".shop_id = txzj_shop.shop_id and txzj_shop.deadline > "+currTimeStampString+" limit "+offsetString+","+pageSizeString).Find(&miniTmplColumns)
 	return miniTmplColumns
 }
