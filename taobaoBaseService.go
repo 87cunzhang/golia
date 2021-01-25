@@ -1,4 +1,4 @@
-package golic
+package golib
 
 import (
 	"crypto/md5"

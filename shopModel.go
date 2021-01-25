@@ -1,4 +1,4 @@
-package golic
+package golib
 
 const shopTableName = "txzj_shop"
 
