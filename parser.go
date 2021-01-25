@@ -1,4 +1,4 @@
-package golia
+package golic
 
 import (
 	"io/ioutil"

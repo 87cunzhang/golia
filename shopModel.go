@@ -1,4 +1,4 @@
-package golia
+package golic
 
 const shopTableName = "txzj_shop"
 
