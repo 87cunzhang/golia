@@ -40,10 +40,6 @@ func init() {
 			log.Fatal(err)
 		}
 
-		if err := engines[k].Ping(); err != nil {
-			log.Fatal(err)
-		}
-
 		engines[k].SetConnMaxLifetime(time.Duration(connMaxLifetime) * time.Second)
 		engines[k].SetMaxIdleConns(maxIdleConns)
 		engines[k].SetMaxOpenConns(maxOpenConns)
