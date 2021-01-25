@@ -1,4 +1,4 @@
-package golib
+package golia
 
 import (
 	"crypto/md5"

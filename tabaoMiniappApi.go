@@ -1,4 +1,4 @@
-package golib
+package golia
 
 //更新实例化应用
 func MiniappTemplateUpdateapp(session string, cients string, appId string, extJson string, templateId string, templateVersion string) string {

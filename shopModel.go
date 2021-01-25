@@ -1,4 +1,4 @@
-package golib
+package golia
 
 const shopTableName = "txzj_shop"
 
